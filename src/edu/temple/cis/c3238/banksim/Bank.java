@@ -38,11 +38,6 @@ public class Bank {
         int sum = 0;
          bank_lock.lock();
         try {
-            // Using the Semaphore from Bank.java to acquire 10 permits before testing
-            //bank.semaphore.acquire(10);
-
-            // Lock critical section to prevent race conditions
-           
             for (Account account : accounts) {
                 System.out.printf("%s %s%n", Thread.currentThread().toString(), account.toString());
                 sum += account.getBalance();
