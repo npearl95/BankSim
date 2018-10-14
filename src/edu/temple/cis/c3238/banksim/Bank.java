@@ -1,5 +1,5 @@
 package edu.temple.cis.c3238.banksim;
-
+import java.util.concurrent.locks.*;
 /**
  * @author Cay Horstmann
  * @author Modified by Paul Wolfgang
@@ -13,6 +13,7 @@ public class Bank {
     private long ntransacts = 0;
     private final int initialBalance;
     private final int numAccounts;
+    private Lock bank_lock = new ReentrantLock();
 
     public Bank(int numAccounts, int initialBalance) {
         this.initialBalance = initialBalance;
@@ -32,24 +33,35 @@ public class Bank {
         if (shouldTest()) test();
     }
 
+    
     public void test() {
         int sum = 0;
-        for (Account account : accounts) {
-            System.out.printf("%s %s%n", 
-                    Thread.currentThread().toString(), account.toString());
-            sum += account.getBalance();
+         bank_lock.lock();
+        try {
+            // Using the Semaphore from Bank.java to acquire 10 permits before testing
+            //bank.semaphore.acquire(10);
+
+            // Lock critical section to prevent race conditions
+           
+            for (Account account : accounts) {
+                System.out.printf("%s %s%n", Thread.currentThread().toString(), account.toString());
+                sum += account.getBalance();
+            }
+        } finally{
+        bank_lock.unlock();
         }
         System.out.println(Thread.currentThread().toString() + 
                 " Sum: " + sum);
         if (sum != numAccounts * initialBalance) {
             System.out.println(Thread.currentThread().toString() + 
                     " Money was gained or lost");
-            System.exit(1);
+            System.exit(0);
         } else {
             System.out.println(Thread.currentThread().toString() + 
                     " The bank is in balance");
         }
     }
+
 
     public int size() {
         return accounts.length;
