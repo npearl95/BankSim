@@ -13,7 +13,7 @@ public class Bank {
     private long ntransacts = 0;
     private final int initialBalance;
     private final int numAccounts;
-    private Lock bank_lock = new ReentrantLock();
+    private Lock t_lock = new ReentrantLock();
 
     public Bank(int numAccounts, int initialBalance) {
         this.initialBalance = initialBalance;
@@ -36,14 +36,14 @@ public class Bank {
     
     public void test() {
         int sum = 0;
-         bank_lock.lock();
+         t_lock.lock();
         try {
             for (Account account : accounts) {
                 System.out.printf("%s %s%n", Thread.currentThread().toString(), account.toString());
                 sum += account.getBalance();
             }
         } finally{
-        bank_lock.unlock();
+        t_lock.unlock();
         }
         System.out.println(Thread.currentThread().toString() + 
                 " Sum: " + sum);
