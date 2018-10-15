@@ -13,7 +13,8 @@ public class Bank {
     private long ntransacts = 0;
     private final int initialBalance;
     private final int numAccounts;
-    private Lock t_lock = new ReentrantLock();
+    private final Lock t_lock = new ReentrantLock();
+    private final Condition enoughFunds = t_lock.newCondition();
 
     public Bank(int numAccounts, int initialBalance) {
         this.initialBalance = initialBalance;
@@ -25,12 +26,26 @@ public class Bank {
         ntransacts = 0;
     }
 
-    public void transfer(int from, int to, int amount) {
+    public void transfer(int from, int to, int amount) throws InterruptedException {
 //        accounts[from].waitForAvailableFunds(amount);
-        if (accounts[from].withdraw(amount)) {
-            accounts[to].deposit(amount);
+        //Beginning of critical section; lock the reentrant lock.
+        t_lock.lock();
+        try {
+            //While there is not enough balance in the acount to satisfy the transfer amount: wait!
+            while(accounts[from].getBalance() < amount) 
+                enoughFunds.await();
+            
+            if (accounts[from].withdraw(amount)) {
+                accounts[to].deposit(amount);
+                if (shouldTest()) 
+                    test();
+            }
+            
+            enoughFunds.signal();
+        } finally {
+            //Unlock Reentrant lock now that critical section is over.
+            t_lock.unlock();
         }
-        if (shouldTest()) test();
     }
 
     
