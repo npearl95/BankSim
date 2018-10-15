@@ -50,6 +50,7 @@ public class Bank {
         if (sum != numAccounts * initialBalance) {
             System.out.println(Thread.currentThread().toString() + 
                     " Money was gained or lost");
+            
             System.exit(0);
         } else {
             System.out.println(Thread.currentThread().toString() + 
