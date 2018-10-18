@@ -20,9 +20,11 @@ public class BankSimMain {
         
         // Start a thread for each account
         for (int i = 0; i < NACCOUNTS; i++) {
+            
             t_lock.lock();
             try{
                 threads[i] = new TransferThread(b, i, INITIAL_BALANCE);
+                
                 threads[i].start();
             }
             finally{
@@ -36,5 +38,6 @@ public class BankSimMain {
           System.out.printf("Bank transfer is in the process.\n");
     }
 }
+
 
 

@@ -1,5 +1,9 @@
 package edu.temple.cis.c3238.banksim;
 
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * @author Cay Horstmann
  * @author Modified by Paul Wolfgang
@@ -10,6 +14,8 @@ public class Account {
     private volatile int balance;
     private final int id;
     private final Bank myBank;
+    private final static Lock t_lock = new ReentrantLock();
+    private final static Condition t_condition=t_lock.newCondition();
 
     public Account(Bank myBank, int id, int initialBalance) {
         this.myBank = myBank;
@@ -33,7 +39,7 @@ public class Account {
         }
     }
 
-    public void deposit(int amount) {
+    public void deposit(int amount){
         int currentBalance = balance;
 //        Thread.yield();   // Try to force collision
         int newBalance = currentBalance + amount;
@@ -45,7 +51,17 @@ public class Account {
         return String.format("Account[%d] balance %d", id, balance);
     }
     
-    void waitForAvailableFunds() {
-        
+    public void waitForAvailableFunds(int amount) throws InterruptedException{
+        t_lock.lock();
+        try{
+            while(balance < amount){
+                //System.out.println("balance: "+balance+" amount: "+amount);
+                t_condition.await();
+
+            }
+            t_condition.signalAll();
+        }finally{
+            t_lock.unlock();
+        }
     }
 }
